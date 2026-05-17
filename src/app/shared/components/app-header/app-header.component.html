@@ -1,0 +1,72 @@
+<nav class="w-full bg-white dark:bg-stone-900 border-b-2 border-pink-100 dark:border-stone-700 shadow-sm px-4 py-3">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
+
+    <!-- Logo izquierda -->
+    <a routerLink="/" class="flex items-center gap-2 group">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+        <i class="pi pi-heart text-white text-base"></i>
+      </div>
+      <span class="font-display text-lg font-bold text-pink-600 dark:text-pink-400 hidden sm:block">My Son's Story</span>
+    </a>
+
+    <!-- Navegación central -->
+    <nav class="flex items-center gap-1">
+      <a
+        routerLink="/nacimientos"
+        routerLinkActive="bg-pink-500 !text-white"
+        [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-stone-300 hover:bg-pink-50 dark:hover:bg-stone-800 transition-colors duration-150 cursor-pointer"
+      >
+        <i class="pi pi-users text-sm"></i>
+        <span>Mis Hijos</span>
+      </a>
+      <a
+        routerLink="/historias"
+        routerLinkActive="bg-pink-500 !text-white"
+        [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-stone-300 hover:bg-pink-50 dark:hover:bg-stone-800 transition-colors duration-150 cursor-pointer"
+      >
+        <i class="pi pi-book text-sm"></i>
+        <span>Mis Historias</span>
+      </a>
+    </nav>
+
+    <!-- Acciones derecha -->
+    <div class="flex items-center gap-2">
+      <!-- Toggle tema -->
+      <p-button
+        [text]="true"
+        [pTooltip]="themeStore.themeTooltip()"
+        tooltipPosition="bottom"
+        [ariaLabel]="themeStore.themeTooltip()"
+        styleClass="!text-slate-500 dark:!text-stone-400 hover:!bg-pink-50 dark:hover:!bg-stone-800 !rounded-xl"
+        (onClick)="themeStore.toggleTheme()"
+      >
+        <i [class]="themeStore.themeIcon() + ' text-base'"></i>
+      </p-button>
+
+      <!-- Foto de perfil del hijo seleccionado -->
+      @if (personCtx.selectedPerson()) {
+        <div class="flex items-center gap-2">
+          @if (personCtx.selectedPersonPhotoUrl()) {
+            <p-image
+              [src]="personCtx.selectedPersonPhotoUrl()!"
+              [alt]="personCtx.selectedPersonName() ?? 'Foto de perfil'"
+              [preview]="true"
+              imageClass="w-9 h-9 rounded-full object-cover border-2 border-pink-300 cursor-pointer hover:border-pink-500 transition-colors"
+            />
+          } @else {
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center border-2 border-pink-300 shadow-sm">
+              <span class="text-white text-sm font-bold font-display">
+                {{ personCtx.selectedPerson()!.firstName.charAt(0).toUpperCase() }}
+              </span>
+            </div>
+          }
+          <span class="text-sm font-semibold text-slate-700 dark:text-stone-200 hidden md:block">
+            {{ personCtx.selectedPersonName() }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</nav>

@@ -1,59 +1,52 @@
-# MySonsStory
+# My Son's Story — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+Aplicación Angular para que padres registren y revivan los momentos de sus hijos.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Angular 21 (standalone, OnPush) |
+| Estado | NgRx Signals (`signalStore`) |
+| UI | PrimeNG 21 + TailwindCSS 4 |
+| Backend | AWS Lambda via API Gateway (Serverless Framework 4) |
+| Almacenamiento | DynamoDB + S3 (fotos y adjuntos) |
 
-```bash
-ng serve
-```
+## Requisitos
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Node.js ≥ 22
+- Angular CLI 21
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Scripts
 
 ```bash
-ng generate --help
+npm start        # dev server en puerto 4400
+npm run build    # build de producción
 ```
 
-## Building
+## Variables de entorno
 
-To build the project run:
+| Archivo | Uso |
+|---------|-----|
+| `src/environments/environment.ts` | Desarrollo local |
+| `src/environments/environment.production.ts` | Producción |
 
-```bash
-ng build
+Configurar `baseApi` con la URL base del API Gateway.
+
+## Estructura de módulos
+
+```
+src/app/
+├── shared/                  # Componentes, stores y servicios compartidos
+├── my-sons-story/
+│   ├── birthdate/           # Módulo de hijos registrados
+│   └── history/             # Módulo de historias por hijo
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Ver el README de cada módulo para detalles de implementación.
 
-## Running unit tests
+## Tema visual
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Diseño Claymorphism: tonos rosa/crema cálidos, modo oscuro persistido en `localStorage` (`msst_theme`).
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+La persona predeterminada se persiste en `localStorage` (`msst_default_person_id`) y se auto-selecciona al iniciar la aplicación.

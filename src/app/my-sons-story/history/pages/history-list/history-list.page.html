@@ -1,0 +1,101 @@
+<p-confirmDialog />
+
+<!-- Encabezado -->
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="font-display text-2xl font-bold text-pink-700 dark:text-pink-400 m-0">Mis Historias</h2>
+    <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">El diario de vida de tu hijo</p>
+  </div>
+  @if (personCtx.selectedPerson()) {
+    <p-button
+      type="button"
+      routerLink="nuevo"
+      label="Nueva historia"
+      icon="pi pi-plus"
+      styleClass="!bg-pink-500 !border-pink-500 hover:!bg-pink-600 !rounded-xl !font-semibold"
+    />
+  }
+</div>
+
+<!-- Banner persona seleccionada -->
+@if (personCtx.selectedPerson()) {
+  <div class="mb-6 p-4 rounded-2xl bg-pink-50 dark:bg-stone-800 border-2 border-pink-100 dark:border-stone-700 flex items-center gap-3">
+    @if (personCtx.selectedPersonPhotoUrl()) {
+      <img [src]="personCtx.selectedPersonPhotoUrl()!" [alt]="personCtx.selectedPersonName()!"
+        class="w-10 h-10 rounded-full object-cover border-2 border-pink-200 flex-shrink-0" />
+    } @else {
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center flex-shrink-0">
+        <span class="text-white text-sm font-bold font-display">
+          {{ personCtx.selectedPerson()!.firstName.charAt(0).toUpperCase() }}
+        </span>
+      </div>
+    }
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-semibold text-slate-700 dark:text-stone-200 m-0">Historias de {{ personCtx.selectedPersonName() }}</p>
+      <p class="text-xs text-slate-400 dark:text-stone-500 m-0">{{ store.entries().length }} entrada(s) registrada(s)</p>
+    </div>
+    <p-button type="button" routerLink="/nacimientos" [text]="true" label="Cambiar" icon="pi pi-arrow-right-arrow-left"
+      styleClass="!text-pink-600 !rounded-xl !text-xs" />
+  </div>
+} @else {
+  <!-- Sin persona seleccionada -->
+  <div class="clay-card p-8 text-center mb-6">
+    <i class="pi pi-user text-3xl text-pink-300 mb-3 block"></i>
+    <h3 class="font-display text-lg font-bold text-slate-700 dark:text-stone-200 mb-2">Ningún hijo seleccionado</h3>
+    <p class="text-slate-500 dark:text-stone-400 text-sm mb-4">Selecciona un hijo en "Mis Hijos" para ver sus historias</p>
+    <p-button type="button" routerLink="/nacimientos" label="Ir a Mis Hijos" icon="pi pi-users"
+      styleClass="!bg-pink-500 !border-pink-500 !rounded-xl !font-semibold" />
+  </div>
+}
+
+<!-- Estado de carga -->
+@if (store.isLoading()) {
+  <div class="flex justify-center py-12">
+    <i class="pi pi-spin pi-spinner text-3xl text-pink-400"></i>
+  </div>
+} @else if (personCtx.selectedPerson() && !store.hasEntries()) {
+  <!-- Sin historias para el hijo seleccionado -->
+  <div class="clay-card p-8 text-center">
+    <i class="pi pi-book text-3xl text-pink-300 mb-3 block"></i>
+    <h3 class="font-display text-lg font-bold text-slate-700 dark:text-stone-200 mb-2">Aún no hay historias</h3>
+    <p class="text-slate-500 dark:text-stone-400 text-sm mb-4">Comienza a escribir el diario de {{ personCtx.selectedPersonName() }}</p>
+    <p-button type="button" routerLink="nuevo" label="Escribir primera historia" icon="pi pi-pencil"
+      styleClass="!bg-pink-500 !border-pink-500 !rounded-xl !font-semibold" />
+  </div>
+} @else if (personCtx.selectedPerson()) {
+  <!-- Grid de cards de historias -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (row of store.entries(); track row.id) {
+      <div class="clay-card p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-200">
+        <!-- Fecha -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-medium text-pink-600 dark:text-pink-400">
+            <i class="pi pi-calendar-heart"></i>
+            <span>{{ row.journalDate }}</span>
+          </div>
+          @if (row.attachments.length) {
+            <div class="flex items-center gap-1 text-xs text-slate-400 dark:text-stone-500">
+              <i class="pi pi-images text-xs"></i>
+              <span>{{ row.attachments.length }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Excerpt -->
+        <p class="text-sm text-slate-600 dark:text-stone-300 leading-relaxed line-clamp-3 flex-1 m-0">{{ excerpt(row.story) }}</p>
+
+        <!-- Acciones -->
+        <div class="flex gap-2 pt-2 border-t border-pink-50 dark:border-stone-700">
+          <p-button type="button" label="Ver" icon="pi pi-eye" [text]="true"
+            styleClass="!text-pink-600 hover:!bg-pink-50 dark:hover:!bg-stone-800 !rounded-lg !text-xs flex-1"
+            (onClick)="viewEntry(row)" />
+          <p-button type="button" [routerLink]="[row.id, 'editar']" icon="pi pi-pencil" [text]="true"
+            styleClass="!text-slate-500 hover:!bg-pink-50 dark:hover:!bg-stone-800 !rounded-lg !text-xs" />
+          <p-button type="button" icon="pi pi-trash" [text]="true"
+            styleClass="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950 !rounded-lg !text-xs"
+            (onClick)="confirmDelete(row)" />
+        </div>
+      </div>
+    }
+  </div>
+}

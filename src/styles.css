@@ -1,1 +1,54 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;500;600;700&family=Varela+Round&display=swap');
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+@source "./**/*.{ts,html}";
+
+@theme {
+  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Varela Round', ui-sans-serif, system-ui, sans-serif;
+
+  /* Paleta rosa cálida (light) */
+  --color-primary-50:  #FDF2F8;
+  --color-primary-100: #FCE9F4;
+  --color-primary-200: #FBCFE8;
+  --color-primary-300: #F9A8D4;
+  --color-primary-400: #F472B6;
+  --color-primary-500: #EC4899;
+  --color-primary-600: #DB2777;
+  --color-primary-700: #BE185D;
+  --color-primary-800: #9D174D;
+  --color-primary-900: #831843;
+
+  /* Accent azul confianza */
+  --color-accent-500: #0284C7;
+  --color-accent-600: #0369A1;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  @apply bg-pink-50 text-slate-900 antialiased;
+}
+
+.dark body {
+  @apply bg-stone-950 text-stone-100;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Claymorphism card base */
+.clay-card {
+  @apply rounded-2xl bg-white border-2 border-pink-100 shadow-lg;
+  box-shadow: 4px 4px 0px 0px rgba(236, 72, 153, 0.15), 0 4px 16px rgba(236, 72, 153, 0.1);
+}
+
+.dark .clay-card {
+  @apply bg-stone-900 border-stone-700;
+  box-shadow: 4px 4px 0px 0px rgba(244, 114, 182, 0.2), 0 4px 16px rgba(0,0,0,0.4);
+}

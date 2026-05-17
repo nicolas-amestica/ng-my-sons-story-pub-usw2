@@ -1,0 +1,100 @@
+<p-confirmDialog />
+
+<!-- Encabezado de sección -->
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="font-display text-2xl font-bold text-pink-700 dark:text-pink-400 m-0">Mis Hijos</h2>
+    <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">Selecciona un hijo para ver sus historias</p>
+  </div>
+  <p-button
+    type="button"
+    routerLink="nuevo"
+    label="Agregar hijo"
+    icon="pi pi-plus"
+    styleClass="!bg-pink-500 !border-pink-500 hover:!bg-pink-600 !rounded-xl !font-semibold"
+  />
+</div>
+
+<!-- Estado de carga -->
+@if (store.isLoading()) {
+  <div class="flex justify-center py-12">
+    <i class="pi pi-spin pi-spinner text-3xl text-pink-400"></i>
+  </div>
+} @else if (!store.hasRecords()) {
+  <!-- Estado vacío -->
+  <div class="clay-card p-10 text-center">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-pink-100 dark:bg-stone-800 flex items-center justify-center">
+      <i class="pi pi-users text-2xl text-pink-400"></i>
+    </div>
+    <h3 class="font-display text-lg font-bold text-slate-700 dark:text-stone-200 mb-2">Aún no hay hijos registrados</h3>
+    <p class="text-slate-500 dark:text-stone-400 text-sm mb-4">Agrega a tu primer hijo para comenzar el diario</p>
+    <p-button type="button" routerLink="nuevo" label="Agregar primer hijo" icon="pi pi-plus"
+      styleClass="!bg-pink-500 !border-pink-500 !rounded-xl !font-semibold" />
+  </div>
+} @else {
+  <!-- Grid de cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (record of store.records(); track record.id) {
+      <div
+        class="clay-card p-5 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+        [class.!border-pink-400]="isSelected(record)"
+        [class.ring-2]="isSelected(record)"
+        [class.ring-pink-400]="isSelected(record)"
+        (click)="selectPerson(record)"
+      >
+        <!-- Foto y nombre -->
+        <div class="flex items-center gap-4 mb-4">
+          @if (record.profilePhotoUrl) {
+            <p-image
+              [src]="record.profilePhotoUrl"
+              [alt]="record.firstName"
+              [preview]="true"
+              imageClass="w-16 h-16 rounded-full object-cover border-3 border-pink-200 shadow-md"
+            />
+          } @else {
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center border-3 border-pink-200 shadow-md flex-shrink-0">
+              <span class="text-white text-xl font-bold font-display">{{ initials(record) }}</span>
+            </div>
+          }
+          <div class="min-w-0 flex-1">
+            <h3 class="font-display text-lg font-bold text-slate-800 dark:text-stone-100 truncate m-0">
+              {{ record.firstName }} {{ record.lastName }}
+            </h3>
+            <p class="text-sm text-slate-500 dark:text-stone-400 mt-0.5">{{ record.birthDate }}</p>
+          </div>
+          @if (isSelected(record)) {
+            <div class="w-7 h-7 rounded-full bg-pink-500 flex items-center justify-center flex-shrink-0">
+              <i class="pi pi-check text-white text-xs"></i>
+            </div>
+          }
+        </div>
+
+        <!-- Fecha -->
+        <div class="flex items-center gap-2 text-xs text-slate-400 dark:text-stone-500 mb-4">
+          <i class="pi pi-calendar-heart"></i>
+          <span>Nacido el {{ record.birthDate }} a las {{ record.birthTime }}</span>
+        </div>
+
+        <!-- Acciones (detener propagación) -->
+        <div class="flex gap-2 pt-3 border-t border-pink-50 dark:border-stone-700" (click)="$event.stopPropagation()">
+          <p-button
+            type="button"
+            [routerLink]="[record.id, 'editar']"
+            icon="pi pi-pencil"
+            label="Editar"
+            [text]="true"
+            styleClass="!text-slate-600 dark:!text-stone-300 hover:!bg-pink-50 dark:hover:!bg-stone-800 !rounded-lg !text-xs flex-1"
+          />
+          <p-button
+            type="button"
+            icon="pi pi-trash"
+            label="Eliminar"
+            [text]="true"
+            styleClass="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950 !rounded-lg !text-xs"
+            (onClick)="confirmDelete(record)"
+          />
+        </div>
+      </div>
+    }
+  </div>
+}

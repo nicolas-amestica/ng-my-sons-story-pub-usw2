@@ -1,0 +1,91 @@
+<p-button
+  type="button"
+  routerLink="/historias"
+  [text]="true"
+  label="Volver"
+  icon="pi pi-arrow-left"
+  styleClass="mb-4 !text-pink-600 !rounded-xl"
+/>
+
+<div class="clay-card p-6 max-w-3xl mx-auto">
+  <h2 class="font-display text-xl font-bold text-pink-700 dark:text-pink-400 mb-6 m-0">
+    {{ isNew() ? 'Nueva historia' : 'Editar historia' }}
+  </h2>
+
+  <!-- Persona bloqueada -->
+  @if (personCtx.selectedPerson()) {
+    <div class="mb-5 p-3 rounded-xl bg-pink-50 dark:bg-stone-800 border border-pink-100 dark:border-stone-700 flex items-center gap-3">
+      @if (personCtx.selectedPersonPhotoUrl()) {
+        <img [src]="personCtx.selectedPersonPhotoUrl()!" alt="Foto"
+          class="w-9 h-9 rounded-full object-cover border-2 border-pink-200 flex-shrink-0" />
+      } @else {
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-sm font-bold font-display">
+            {{ personCtx.selectedPerson()!.firstName.charAt(0).toUpperCase() }}
+          </span>
+        </div>
+      }
+      <div>
+        <p class="m-0 text-xs text-slate-400 dark:text-stone-500">Historia de</p>
+        <p class="m-0 text-sm font-semibold text-slate-700 dark:text-stone-200">{{ personCtx.selectedPersonName() }}</p>
+      </div>
+      <i class="pi pi-lock text-slate-300 dark:text-stone-600 ml-auto text-xs"></i>
+    </div>
+  } @else {
+    <div class="mb-5 p-3 rounded-xl bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 flex items-center gap-2">
+      <i class="pi pi-exclamation-triangle text-orange-500"></i>
+      <p class="m-0 text-sm text-orange-700 dark:text-orange-300">Selecciona un hijo en "Mis Hijos" antes de guardar.</p>
+      <p-button type="button" routerLink="/nacimientos" [text]="true" label="Ir" icon="pi pi-arrow-right"
+        styleClass="!text-orange-600 !rounded-lg !text-xs ml-auto" />
+    </div>
+  }
+
+  <form [formGroup]="form" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Fecha del relato *</label>
+      <p-datepicker formControlName="journalDate" dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Historia *</label>
+      <p-editor formControlName="story" [style]="{ height: '300px' }" placeholder="Escribe el relato del día…" />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Fotos y adjuntos (opcional)</label>
+      <p-fileupload
+        mode="advanced"
+        [customUpload]="true"
+        [multiple]="true"
+        [auto]="false"
+        [showUploadButton]="false"
+        [showCancelButton]="true"
+        chooseLabel="Añadir archivos"
+        styleClass="!border-0 !bg-transparent p-0 w-full"
+        (onSelect)="syncPendingFromUploader()"
+        (onRemove)="syncPendingFromUploader()"
+        (onClear)="syncPendingFromUploader()"
+      />
+      @if (pendingFiles().length) {
+        <p-chip
+          [label]="pendingFiles().length + ' archivo(s) se subirán al guardar'"
+          styleClass="text-xs bg-pink-50 dark:bg-stone-800 border border-pink-100 dark:border-stone-700 text-pink-700 dark:text-pink-300"
+        />
+      }
+    </div>
+
+    <div class="flex flex-wrap gap-2 pt-2">
+      <p-button
+        type="button"
+        label="Guardar historia"
+        icon="pi pi-check"
+        [loading]="store.isSaving()"
+        [disabled]="store.isLoading() || !personCtx.selectedPerson()"
+        (onClick)="submit()"
+        styleClass="!bg-pink-500 !border-pink-500 hover:!bg-pink-600 !rounded-xl !font-semibold flex-1"
+      />
+      <p-button type="button" routerLink="/historias" label="Cancelar" [outlined]="true"
+        styleClass="!rounded-xl !border-pink-300 !text-pink-600" />
+    </div>
+  </form>
+</div>

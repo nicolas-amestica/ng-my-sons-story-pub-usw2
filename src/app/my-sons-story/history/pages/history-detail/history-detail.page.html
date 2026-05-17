@@ -1,0 +1,87 @@
+<p-button
+  type="button"
+  routerLink="/historias"
+  [text]="true"
+  label="Volver"
+  icon="pi pi-arrow-left"
+  styleClass="mb-4 !text-pink-600 !rounded-xl"
+/>
+
+@if (store.isLoading()) {
+  <div class="flex justify-center py-12">
+    <i class="pi pi-spin pi-spinner text-3xl text-pink-400"></i>
+  </div>
+} @else if (store.selected()) {
+  <div class="max-w-3xl mx-auto flex flex-col gap-6">
+
+    <!-- Header de la entrada -->
+    <div class="clay-card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          @if (personCtx.selectedPersonPhotoUrl()) {
+            <img [src]="personCtx.selectedPersonPhotoUrl()!" [alt]="personCtx.selectedPersonName()!"
+              class="w-10 h-10 rounded-full object-cover border-2 border-pink-200" />
+          } @else {
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center">
+              <span class="text-white text-sm font-bold">{{ personCtx.selectedPerson()?.firstName?.charAt(0)?.toUpperCase() }}</span>
+            </div>
+          }
+          <div>
+            <p class="m-0 text-xs text-slate-400 dark:text-stone-500">Historia de</p>
+            <p class="m-0 text-sm font-semibold text-slate-700 dark:text-stone-200">{{ personCtx.selectedPersonName() }}</p>
+          </div>
+        </div>
+        <p-button type="button" icon="pi pi-pencil" label="Editar" [outlined]="true"
+          styleClass="!rounded-xl !border-pink-300 !text-pink-600 !text-xs"
+          (onClick)="goEdit()" />
+      </div>
+      <div class="flex items-center gap-2 text-sm text-pink-600 dark:text-pink-400 mb-4">
+        <i class="pi pi-calendar-heart"></i>
+        <span class="font-semibold font-display">{{ store.selected()!.journalDate }}</span>
+      </div>
+      <!-- Contenido HTML del editor -->
+      <div
+        class="prose dark:prose-invert max-w-none text-slate-700 dark:text-stone-200 leading-relaxed"
+        [innerHTML]="store.selected()!.story"
+      ></div>
+    </div>
+
+    <!-- Galería de imágenes (solo si hay imágenes) -->
+    @if (imageAttachments().length > 0) {
+      <div class="clay-card p-6">
+        <h3 class="font-display text-lg font-bold text-pink-700 dark:text-pink-400 mb-4 m-0">
+          <i class="pi pi-images mr-2"></i>Fotos ({{ imageAttachments().length }})
+        </h3>
+        <p-galleria
+          [value]="imageAttachments()"
+          [numVisible]="4"
+          [circular]="true"
+          [showThumbnails]="true"
+          [showIndicators]="false"
+          containerClass="rounded-xl overflow-hidden"
+        >
+          <ng-template pTemplate="item" let-att>
+            <img
+              [src]="att.viewUrl"
+              [alt]="att.fileName"
+              class="w-full max-h-[480px] object-contain bg-black/5 dark:bg-white/5 rounded-xl"
+            />
+          </ng-template>
+          <ng-template pTemplate="thumbnail" let-att>
+            <img
+              [src]="att.viewUrl"
+              [alt]="att.fileName"
+              class="w-16 h-16 object-cover rounded-lg border-2 border-transparent hover:border-pink-400 transition-colors"
+            />
+          </ng-template>
+        </p-galleria>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="clay-card p-8 text-center max-w-md mx-auto">
+    <i class="pi pi-search text-3xl text-pink-300 mb-3 block"></i>
+    <p class="text-slate-500 dark:text-stone-400">Historia no encontrada</p>
+    <p-button type="button" routerLink="/historias" label="Volver al listado" styleClass="!rounded-xl !mt-3" />
+  </div>
+}
