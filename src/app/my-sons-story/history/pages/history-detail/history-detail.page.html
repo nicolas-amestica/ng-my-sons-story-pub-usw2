@@ -65,34 +65,35 @@
           }
         </div>
 
-        <!-- Galería fullscreen -->
-        <p-galleria
-          [value]="imageAttachments()"
-          [fullScreen]="true"
-          [visible]="galleriaVisible()"
-          (visibleChange)="galleriaVisible.set($event)"
-          [activeIndex]="galleriaActiveIndex()"
-          (activeIndexChange)="galleriaActiveIndex.set($event)"
-          [numVisible]="4"
-          [circular]="true"
-          [showThumbnails]="true"
-          [showIndicators]="false"
-        >
-          <ng-template pTemplate="item" let-att>
-            <img
-              [src]="att.viewUrl"
-              [alt]="att.fileName"
-              class="max-h-[80vh] max-w-full object-contain"
-            />
-          </ng-template>
-          <ng-template pTemplate="thumbnail" let-att>
-            <img
-              [src]="att.viewUrl"
-              [alt]="att.fileName"
-              class="w-16 h-16 object-cover rounded-lg border-2 border-transparent hover:border-pink-400 transition-colors"
-            />
-          </ng-template>
-        </p-galleria>
+        <!-- Galería fullscreen: se crea fresca al abrir para evitar conflicto de activeIndex -->
+        @if (galleriaVisible()) {
+          <p-galleria
+            [value]="imageAttachments()"
+            [fullScreen]="true"
+            [visible]="true"
+            (visibleChange)="galleriaVisible.set($event)"
+            [activeIndex]="galleriaActiveIndex()"
+            [numVisible]="4"
+            [circular]="true"
+            [showThumbnails]="true"
+            [showIndicators]="false"
+          >
+            <ng-template pTemplate="item" let-att>
+              <img
+                [src]="att.viewUrl"
+                [alt]="att.fileName"
+                class="max-h-[80vh] max-w-full object-contain"
+              />
+            </ng-template>
+            <ng-template pTemplate="thumbnail" let-att>
+              <img
+                [src]="att.viewUrl"
+                [alt]="att.fileName"
+                class="w-16 h-16 object-cover rounded-lg border-2 border-transparent hover:border-pink-400 transition-colors"
+              />
+            </ng-template>
+          </p-galleria>
+        }
       </div>
     }
   </div>
