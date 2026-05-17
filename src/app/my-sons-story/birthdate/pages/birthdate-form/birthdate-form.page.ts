@@ -121,12 +121,19 @@ export class BirthdateFormPage implements OnInit {
     }
     const v = this.form.getRawValue();
     const birthDate = format(v.birthDate!, 'yyyy-MM-dd');
+    const [h, m] = v.birthTime.split(':').map(Number);
+    // Interpretar fecha/hora como hora local (el datepicker devuelve Date local)
+    const birthDateTimeIso = new Date(
+      v.birthDate!.getFullYear(), v.birthDate!.getMonth(), v.birthDate!.getDate(),
+      h, m, 0, 0,
+    ).toISOString();
     const payload = {
       firstName: v.firstName,
       paternalLastName: v.paternalLastName,
       maternalLastName: v.maternalLastName || undefined,
       birthDate,
       birthTime: v.birthTime,
+      birthDateTimeIso,
     };
     const id = this.editId();
     const setAsDefault = v.isDefault;
