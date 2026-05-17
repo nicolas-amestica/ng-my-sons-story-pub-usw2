@@ -1,7 +1,9 @@
 export interface BirthRecord {
   id: string;
   firstName: string;
-  lastName: string;
+  paternalLastName: string;
+  maternalLastName?: string;
+  lastName: string; // derivado: paternalLastName + maternalLastName
   birthDate: string;
   birthTime: string;
   birthDateTimeIso: string;
@@ -14,7 +16,8 @@ export interface BirthRecord {
 
 export interface CreateBirthPayload {
   firstName: string;
-  lastName: string;
+  paternalLastName: string;
+  maternalLastName?: string;
   birthDate: string;
   birthTime: string;
   birthDateTimeIso?: string;

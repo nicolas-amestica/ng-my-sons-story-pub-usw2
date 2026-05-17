@@ -19,7 +19,6 @@ import { concatMap, from, last, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
-import { Chip } from 'primeng/chip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { EditorModule } from 'primeng/editor';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
@@ -28,6 +27,7 @@ import { HistoryService } from '@my-sons-story/history/services/history.service'
 import { HistoryStore } from '@my-sons-story/history/stores/history.store';
 import { PersonContextStore } from '@shared/stores/person-context/person-context.store';
 import { NotificationService } from '@shared/services/notification.service';
+import { compressImage } from '@my-sons-story/shared/utils/image-compress.util';
 
 @Component({
   selector: 'app-history-form-page',
@@ -37,7 +37,6 @@ import { NotificationService } from '@shared/services/notification.service';
     RouterLink,
     BadgeModule,
     ButtonModule,
-    Chip,
     DatePickerModule,
     EditorModule,
     FileUploadModule,
@@ -91,7 +90,7 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
     } else {
       this.store.resetDetail();
       this.storyHtml = '';
-      this.form.reset({ journalDate: null });
+      this.form.reset({ journalDate: new Date() });
       this.pendingFiles.set([]);
     }
   }
@@ -105,6 +104,11 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
   }
 
   protected onFilesCleared(): void {
+    this.pendingFiles.set([]);
+  }
+
+  protected clearAllFiles(): void {
+    this.fileUploadRef()?.clear();
     this.pendingFiles.set([]);
   }
 
@@ -137,7 +141,11 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
           const hid = saved.id;
           if (!files.length) return of(saved);
           return from(files).pipe(
-            concatMap((f) => this.historyService.uploadAndRegister(hid, f)),
+            concatMap((f) =>
+              from(compressImage(f, 1200, 0.85)).pipe(
+                switchMap((compressed) => this.historyService.uploadAndRegister(hid, compressed)),
+              ),
+            ),
             last(),
           );
         }),

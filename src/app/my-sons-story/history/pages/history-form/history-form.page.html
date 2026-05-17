@@ -44,7 +44,9 @@
     <!-- Fecha -->
     <form [formGroup]="form">
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Fecha del relato *</label>
+        <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">
+          Fecha del relato <span class="text-red-500">*</span>
+        </label>
         <p-datepicker formControlName="journalDate" dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
       </div>
     </form>
@@ -60,38 +62,33 @@
       />
     </div>
 
-    <!-- Drag & Drop de imágenes -->
+    <!-- Adjuntos -->
     <div class="flex flex-col gap-2">
       <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Fotos y adjuntos (opcional)</label>
-      <p-fileupload
-        mode="advanced"
-        [customUpload]="true"
-        [multiple]="true"
-        [auto]="false"
-        [showUploadButton]="false"
-        [showCancelButton]="false"
-        chooseLabel="Añadir archivos"
-        (onSelect)="syncFiles()"
-        (onClear)="onFilesCleared()"
-        (onRemove)="syncFiles()"
-      >
-        <ng-template #empty>
-          <div class="flex flex-col items-center justify-center gap-2 py-8 text-slate-400 dark:text-stone-500 cursor-default select-none">
-            <div class="w-16 h-16 rounded-2xl bg-pink-50 dark:bg-stone-800 flex items-center justify-center mb-1">
-              <i class="pi pi-cloud-upload text-3xl text-pink-300 dark:text-pink-600"></i>
-            </div>
-            <p class="m-0 text-sm font-semibold text-slate-500 dark:text-stone-400">Arrastra fotos aquí</p>
-            <p class="m-0 text-xs text-slate-400 dark:text-stone-500">o usa el botón "Añadir archivos"</p>
-          </div>
-        </ng-template>
-      </p-fileupload>
-
-      @if (pendingFiles().length) {
-        <p-chip
-          [label]="pendingFiles().length + ' archivo(s) se subirán al guardar'"
-          styleClass="text-xs bg-pink-50 dark:bg-stone-800 border border-pink-100 dark:border-stone-700 text-pink-700 dark:text-pink-300"
+      <div class="flex flex-wrap items-center gap-2">
+        <p-fileupload
+          mode="basic"
+          [customUpload]="true"
+          [multiple]="true"
+          [auto]="false"
+          chooseLabel="Adjuntar"
+          chooseIcon="pi pi-paperclip"
+          chooseStyleClass="!text-slate-500 dark:!text-stone-300 !border !border-slate-200 dark:!border-stone-600 !rounded-lg !bg-white dark:!bg-stone-800 !shadow-none !text-xs !px-3 !py-1.5 hover:!bg-pink-50 dark:hover:!bg-stone-700"
+          (onSelect)="syncFiles()"
         />
-      }
+        @if (pendingFiles().length) {
+          <span class="text-xs text-slate-500 dark:text-stone-400">
+            {{ pendingFiles().length }} archivo(s) seleccionado(s)
+          </span>
+          <button
+            type="button"
+            class="text-xs text-slate-400 hover:text-red-400 transition-colors"
+            (click)="clearAllFiles()"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        }
+      </div>
     </div>
 
     <!-- Acciones -->

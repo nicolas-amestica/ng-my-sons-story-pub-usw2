@@ -26,6 +26,7 @@ import { BirthdateStore } from '@my-sons-story/birthdate/stores/birthdate.store'
 import { PersonContextStore } from '@shared/stores/person-context/person-context.store';
 import { NotificationService } from '@shared/services/notification.service';
 import { STORAGE_KEYS } from '@shared/constants/storage-keys.constant';
+import { compressImage } from '@my-sons-story/shared/utils/image-compress.util';
 
 @Component({
   selector: 'app-birthdate-form-page',
@@ -61,7 +62,8 @@ export class BirthdateFormPage implements OnInit {
 
   protected readonly form = this.fb.group({
     firstName: this.fb.control('', { validators: [Validators.required] }),
-    lastName: this.fb.control('', { validators: [Validators.required] }),
+    paternalLastName: this.fb.control('', { validators: [Validators.required] }),
+    maternalLastName: this.fb.control(''),
     birthDate: this.fb.control<Date | null>(null, { validators: [Validators.required] }),
     birthTime: this.fb.control('00:00', { validators: [Validators.required] }),
     isDefault: this.fb.control(false),
@@ -77,7 +79,8 @@ export class BirthdateFormPage implements OnInit {
       untracked(() => {
         this.form.patchValue({
           firstName: r.firstName,
-          lastName: r.lastName,
+          paternalLastName: r.paternalLastName ?? r.lastName ?? '',
+          maternalLastName: r.maternalLastName ?? '',
           birthDate: d,
           birthTime: r.birthTime ?? '00:00',
           isDefault,
@@ -94,7 +97,7 @@ export class BirthdateFormPage implements OnInit {
       this.store.loadDetail({ id });
     } else {
       this.store.resetDetail();
-      this.form.reset({ firstName: '', lastName: '', birthDate: null, birthTime: '00:00', isDefault: false });
+      this.form.reset({ firstName: '', paternalLastName: '', maternalLastName: '', birthDate: null, birthTime: '00:00', isDefault: false });
       this.photoPreviewUrl.set(null);
       this.pendingPhotoFile.set(null);
     }
@@ -103,10 +106,12 @@ export class BirthdateFormPage implements OnInit {
   onPhotoSelect(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    this.pendingPhotoFile.set(file);
-    const reader = new FileReader();
-    reader.onload = (e) => this.photoPreviewUrl.set(e.target?.result as string);
-    reader.readAsDataURL(file);
+    compressImage(file, 800, 0.85).then((compressed) => {
+      this.pendingPhotoFile.set(compressed);
+      const reader = new FileReader();
+      reader.onload = (e) => this.photoPreviewUrl.set(e.target?.result as string);
+      reader.readAsDataURL(compressed);
+    });
   }
 
   submit(): void {
@@ -118,7 +123,8 @@ export class BirthdateFormPage implements OnInit {
     const birthDate = format(v.birthDate!, 'yyyy-MM-dd');
     const payload = {
       firstName: v.firstName,
-      lastName: v.lastName,
+      paternalLastName: v.paternalLastName,
+      maternalLastName: v.maternalLastName || undefined,
       birthDate,
       birthTime: v.birthTime,
     };
@@ -132,7 +138,6 @@ export class BirthdateFormPage implements OnInit {
       .pipe(
         switchMap((saved) => {
           if (!file) return of(saved);
-          // Subir foto a S3
           return this.birthService.presignProfilePhoto(saved.id, file.name, file.type || 'image/jpeg').pipe(
             switchMap((presign) =>
               this.birthService.putToPresignedUrl(presign.uploadUrl, file, file.type || 'image/jpeg').pipe(
@@ -150,7 +155,6 @@ export class BirthdateFormPage implements OnInit {
             this.personCtx.selectPerson(saved);
           }
           this.notify.showToastSuccess(id ? 'Actualizado correctamente.' : 'Hijo registrado.');
-          this.store.loadList();
           void this.router.navigate(['/nacimientos']);
         },
         error: () => this.notify.showToastError('No se pudo guardar.'),

@@ -51,8 +51,12 @@
       <input id="fn" pInputText type="text" formControlName="firstName" class="w-full !rounded-xl" autocomplete="given-name" placeholder="ej. Sofía" />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label for="ln" class="text-sm font-semibold text-slate-700 dark:text-stone-200">Apellido *</label>
-      <input id="ln" pInputText type="text" formControlName="lastName" class="w-full !rounded-xl" autocomplete="family-name" placeholder="ej. González" />
+      <label for="pln" class="text-sm font-semibold text-slate-700 dark:text-stone-200">Apellido paterno *</label>
+      <input id="pln" pInputText type="text" formControlName="paternalLastName" class="w-full !rounded-xl" autocomplete="family-name" placeholder="ej. González" />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label for="mln" class="text-sm font-semibold text-slate-700 dark:text-stone-200">Apellido materno</label>
+      <input id="mln" pInputText type="text" formControlName="maternalLastName" class="w-full !rounded-xl" autocomplete="family-name" placeholder="ej. Martínez" />
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-sm font-semibold text-slate-700 dark:text-stone-200">Fecha de nacimiento *</label>
