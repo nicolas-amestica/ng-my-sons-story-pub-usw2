@@ -1,17 +1,20 @@
 import { format, parse } from 'date-fns';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { filter, of, switchMap, take } from 'rxjs';
+import { of, switchMap } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -44,6 +47,7 @@ export class BirthdateFormPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly birthService = inject(BirthdateService);
   private readonly notify = inject(NotificationService);
   protected readonly store = inject(BirthdateStore);
@@ -52,7 +56,6 @@ export class BirthdateFormPage implements OnInit {
   protected readonly editId = computed(() => this.route.snapshot.paramMap.get('id'));
   protected readonly isNew = computed(() => !this.editId());
 
-  // Foto de perfil
   protected readonly photoPreviewUrl = signal<string | null>(null);
   protected readonly pendingPhotoFile = signal<File | null>(null);
 
@@ -64,28 +67,31 @@ export class BirthdateFormPage implements OnInit {
     isDefault: this.fb.control(false),
   });
 
+  constructor() {
+    effect(() => {
+      const r = this.store.selected();
+      const id = this.editId();
+      if (!r || !id || r.id !== id) return;
+      const d = parse(r.birthDate, 'yyyy-MM-dd', new Date());
+      const isDefault = localStorage.getItem(STORAGE_KEYS.DEFAULT_PERSON_ID) === r.id;
+      untracked(() => {
+        this.form.patchValue({
+          firstName: r.firstName,
+          lastName: r.lastName,
+          birthDate: d,
+          birthTime: r.birthTime ?? '00:00',
+          isDefault,
+        });
+        if (r.profilePhotoUrl) this.photoPreviewUrl.set(r.profilePhotoUrl);
+        this.cdr.markForCheck();
+      });
+    });
+  }
+
   ngOnInit(): void {
     const id = this.editId();
     if (id) {
       this.store.loadDetail({ id });
-      toObservable(this.store.selected)
-        .pipe(
-          filter((r): r is NonNullable<typeof r> => !!r && r.id === id),
-          take(1),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe((r) => {
-          const d = parse(r.birthDate, 'yyyy-MM-dd', new Date());
-          const isDefault = localStorage.getItem(STORAGE_KEYS.DEFAULT_PERSON_ID) === r.id;
-          this.form.patchValue({
-            firstName: r.firstName,
-            lastName: r.lastName,
-            birthDate: d,
-            birthTime: r.birthTime ?? '00:00',
-            isDefault,
-          });
-          if (r.profilePhotoUrl) this.photoPreviewUrl.set(r.profilePhotoUrl);
-        });
     } else {
       this.store.resetDetail();
       this.form.reset({ firstName: '', lastName: '', birthDate: null, birthTime: '00:00', isDefault: false });

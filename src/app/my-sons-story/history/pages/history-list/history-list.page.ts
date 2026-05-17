@@ -34,10 +34,11 @@ export class HistoryListPage implements OnInit {
     });
   }
 
-  excerpt(text: string, max = 120): string {
-    // strip HTML tags for excerpt
-    const stripped = text?.replace(/<[^>]*>/g, '') ?? '';
-    return stripped.length <= max ? stripped : `${stripped.slice(0, max)}…`;
+  excerpt(html: string, max = 120): string {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html ?? '';
+    const text = (tmp.textContent ?? tmp.innerText ?? '').replace(/\s+/g, ' ').trim();
+    return text.length <= max ? text : `${text.slice(0, max)}…`;
   }
 
   viewEntry(row: HistoryEntry): void {

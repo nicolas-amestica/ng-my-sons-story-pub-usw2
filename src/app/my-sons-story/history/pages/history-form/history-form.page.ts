@@ -2,23 +2,27 @@ import { format, parse } from 'date-fns';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { concatMap, filter, from, last, of, switchMap, take } from 'rxjs';
+import { concatMap, from, last, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { Chip } from 'primeng/chip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { EditorModule } from 'primeng/editor';
-import { FileUpload } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { PanelModule } from 'primeng/panel';
 import { HistoryService } from '@my-sons-story/history/services/history.service';
 import { HistoryStore } from '@my-sons-story/history/stores/history.store';
@@ -28,13 +32,15 @@ import { NotificationService } from '@shared/services/notification.service';
 @Component({
   selector: 'app-history-form-page',
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     RouterLink,
+    BadgeModule,
     ButtonModule,
     Chip,
     DatePickerModule,
     EditorModule,
-    FileUpload,
+    FileUploadModule,
     PanelModule,
   ],
   templateUrl: './history-form.page.html',
@@ -45,6 +51,7 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly historyService = inject(HistoryService);
   private readonly notify = inject(NotificationService);
   protected readonly store = inject(HistoryStore);
@@ -52,50 +59,62 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
 
   protected readonly editId = computed(() => this.route.snapshot.paramMap.get('id'));
   protected readonly isNew = computed(() => !this.editId());
+  protected readonly isSaving = signal(false);
   protected readonly pendingFiles = signal<File[]>([]);
-  private readonly fileUpload = viewChild(FileUpload);
+  protected storyHtml = '';
+
+  private readonly fileUploadRef = viewChild(FileUpload);
 
   protected readonly form = this.fb.group({
-    story: this.fb.control('', { validators: [Validators.required, Validators.minLength(3)] }),
     journalDate: this.fb.control<Date | null>(null, { validators: [Validators.required] }),
   });
+
+  constructor() {
+    effect(() => {
+      const r = this.store.selected();
+      const id = this.editId();
+      if (r && id && r.id === id) {
+        const d = parse(r.journalDate, 'yyyy-MM-dd', new Date());
+        this.storyHtml = r.story ?? '';
+        untracked(() => {
+          this.form.patchValue({ journalDate: d });
+          this.cdr.markForCheck();
+        });
+      }
+    });
+  }
 
   ngOnInit(): void {
     const id = this.editId();
     if (id) {
       this.store.loadDetail({ id });
-      toObservable(this.store.selected)
-        .pipe(
-          filter((r): r is NonNullable<typeof r> => !!r && r.id === id),
-          take(1),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe((r) => {
-          const d = parse(r.journalDate, 'yyyy-MM-dd', new Date());
-          this.form.patchValue({ story: r.story, journalDate: d });
-        });
     } else {
       this.store.resetDetail();
-      this.form.reset({ story: '', journalDate: null });
+      this.storyHtml = '';
+      this.form.reset({ journalDate: null });
       this.pendingFiles.set([]);
     }
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => {
-      this.fileUpload()?.clear();
-      this.syncPendingFromUploader();
-    });
+    queueMicrotask(() => this.syncFiles());
   }
 
-  protected syncPendingFromUploader(): void {
-    const fu = this.fileUpload();
-    this.pendingFiles.set(fu?.files?.length ? [...fu.files] : []);
+  protected syncFiles(): void {
+    this.pendingFiles.set([...(this.fileUploadRef()?.files ?? [])]);
+  }
+
+  protected onFilesCleared(): void {
+    this.pendingFiles.set([]);
   }
 
   submit(): void {
     if (!this.personCtx.selectedPerson()) {
       this.notify.showToastWarn('Selecciona un hijo antes de guardar una historia.');
+      return;
+    }
+    if (!this.storyHtml.trim()) {
+      this.notify.showToastWarn('Escribe una historia antes de guardar.');
       return;
     }
     if (this.form.invalid) {
@@ -105,12 +124,13 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
     const v = this.form.getRawValue();
     const journalDate = format(v.journalDate!, 'yyyy-MM-dd');
     const birthdateId = this.personCtx.selectedPerson()!.id;
-    const body = { story: v.story, journalDate, birthdateId };
+    const body = { story: this.storyHtml, journalDate, birthdateId };
     const id = this.editId();
     const files = this.pendingFiles();
 
     const save$ = id ? this.historyService.update(id, body) : this.historyService.create(body);
 
+    this.isSaving.set(true);
     save$
       .pipe(
         switchMap((saved) => {
@@ -125,11 +145,15 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: () => {
+          this.isSaving.set(false);
           this.notify.showToastSuccess('Historia guardada correctamente.');
           this.store.loadList();
           void this.router.navigate(['/historias']);
         },
-        error: () => this.notify.showToastError('Error al guardar o subir archivos.'),
+        error: () => {
+          this.isSaving.set(false);
+          this.notify.showToastError('Error al guardar o subir archivos.');
+        },
       });
   }
 }
