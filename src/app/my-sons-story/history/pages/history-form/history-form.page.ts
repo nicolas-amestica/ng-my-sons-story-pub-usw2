@@ -155,7 +155,6 @@ export class HistoryFormPage implements OnInit, AfterViewInit {
         next: () => {
           this.isSaving.set(false);
           this.notify.showToastSuccess('Historia guardada correctamente.');
-          this.store.loadList();
           void this.router.navigate(['/historias']);
         },
         error: () => {
