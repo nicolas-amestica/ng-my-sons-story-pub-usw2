@@ -52,19 +52,37 @@
         <h3 class="font-display text-lg font-bold text-pink-700 dark:text-pink-400 mb-4 m-0">
           <i class="pi pi-images mr-2"></i>Fotos ({{ imageAttachments().length }})
         </h3>
+
+        <!-- Grid de miniaturas clicables -->
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          @for (att of imageAttachments(); track att.key; let i = $index) {
+            <img
+              [src]="att.viewUrl"
+              [alt]="att.fileName"
+              class="w-full h-28 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-pink-400 hover:opacity-90 transition-all"
+              (click)="openFullscreen(i)"
+            />
+          }
+        </div>
+
+        <!-- Galería fullscreen -->
         <p-galleria
           [value]="imageAttachments()"
+          [fullScreen]="true"
+          [visible]="galleriaVisible()"
+          (visibleChange)="galleriaVisible.set($event)"
+          [activeIndex]="galleriaActiveIndex()"
+          (activeIndexChange)="galleriaActiveIndex.set($event)"
           [numVisible]="4"
           [circular]="true"
           [showThumbnails]="true"
           [showIndicators]="false"
-          containerClass="rounded-xl overflow-hidden"
         >
           <ng-template pTemplate="item" let-att>
             <img
               [src]="att.viewUrl"
               [alt]="att.fileName"
-              class="w-full max-h-[480px] object-contain bg-black/5 dark:bg-white/5 rounded-xl"
+              class="max-h-[80vh] max-w-full object-contain"
             />
           </ng-template>
           <ng-template pTemplate="thumbnail" let-att>

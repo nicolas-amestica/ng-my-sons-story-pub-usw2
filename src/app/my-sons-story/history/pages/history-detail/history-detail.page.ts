@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { GalleriaModule } from 'primeng/galleria';
@@ -25,6 +25,9 @@ export class HistoryDetailPage implements OnInit {
     ),
   );
 
+  protected readonly galleriaVisible = signal(false);
+  protected readonly galleriaActiveIndex = signal(0);
+
   ngOnInit(): void {
     const id = this.entryId();
     if (id) this.store.loadDetail({ id });
@@ -32,5 +35,10 @@ export class HistoryDetailPage implements OnInit {
 
   goEdit(): void {
     void this.router.navigate(['/historias', this.entryId(), 'editar']);
+  }
+
+  openFullscreen(index: number): void {
+    this.galleriaActiveIndex.set(index);
+    this.galleriaVisible.set(true);
   }
 }

@@ -1,7 +1,7 @@
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HistoryStore } from '@my-sons-story/history/stores/history.store';
 import { PersonContextStore } from '@shared/stores/person-context/person-context.store';
@@ -13,14 +13,30 @@ import type { HistoryEntry } from '@my-sons-story/history/interfaces/history-ent
   templateUrl: './history-list.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HistoryListPage implements OnInit {
+export class HistoryListPage {
   protected readonly store = inject(HistoryStore);
   protected readonly personCtx = inject(PersonContextStore);
   private readonly confirmation = inject(ConfirmationService);
   private readonly router = inject(Router);
 
-  ngOnInit(): void {
-    this.store.loadList();
+  protected readonly sortedEntries = computed(() =>
+    [...this.store.entries()].sort((a, b) => {
+      const byDate = b.journalDate.localeCompare(a.journalDate);
+      return byDate !== 0 ? byDate : (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+    }),
+  );
+
+  constructor() {
+    effect(() => {
+      if (this.personCtx.selectedPerson()) {
+        this.store.loadList();
+      }
+    });
+  }
+
+  formatTime(isoString?: string): string {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
   }
 
   confirmDelete(row: HistoryEntry): void {

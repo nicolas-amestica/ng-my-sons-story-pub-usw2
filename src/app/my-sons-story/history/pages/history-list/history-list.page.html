@@ -30,7 +30,7 @@
     }
     <div class="min-w-0 flex-1">
       <p class="text-sm font-semibold text-slate-700 dark:text-stone-200 m-0">Historias de {{ personCtx.selectedPersonName() }}</p>
-      <p class="text-xs text-slate-400 dark:text-stone-500 m-0">{{ store.entries().length }} entrada(s) registrada(s)</p>
+      <p class="text-xs text-slate-400 dark:text-stone-500 m-0">{{ sortedEntries().length }} entrada(s) registrada(s)</p>
     </div>
     <p-button type="button" routerLink="/nacimientos" [text]="true" label="Cambiar" icon="pi pi-arrow-right-arrow-left"
       styleClass="!text-pink-600 !rounded-xl !text-xs" />
@@ -63,13 +63,16 @@
 } @else if (personCtx.selectedPerson()) {
   <!-- Grid de cards de historias -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    @for (row of store.entries(); track row.id) {
+    @for (row of sortedEntries(); track row.id) {
       <div class="clay-card p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-200">
-        <!-- Fecha -->
+        <!-- Fecha y hora -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-xs font-medium text-pink-600 dark:text-pink-400">
             <i class="pi pi-calendar-heart"></i>
             <span>{{ row.journalDate }}</span>
+            @if (formatTime(row.createdAt)) {
+              <span class="text-slate-400 dark:text-stone-500 font-normal">· {{ formatTime(row.createdAt) }}</span>
+            }
           </div>
           @if (row.attachments.length) {
             <div class="flex items-center gap-1 text-xs text-slate-400 dark:text-stone-500">
